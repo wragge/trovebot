@@ -1,3 +1,4 @@
 *.pyc
 credentials.py
 file_locations_prod.py
+file_locations_dev.py

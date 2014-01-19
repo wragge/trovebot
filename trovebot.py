@@ -163,12 +163,13 @@ def extract_url_keywords(tweet, text, xpath=None):
         # Use Alchemy
         results = get_alchemy_result(url)
         for keyword in results['keywords']:
-            if len(keyword['text'].split()) > 1:
-                keywords.append('"{}"'.format(keyword['text']))
+            text = keyword['text']
+            if len(text.split()) > 1:
+                keywords.append('"{}"'.format(text.encode('utf-8')))
             else:
-                keywords.append(keyword['text'])
+                keywords.append(text.encode('utf-8'))
     query = '({})'.format(' OR '.join(keywords))
-    #print query
+    print query
     return query
 
 
@@ -251,14 +252,15 @@ def process_tweet(tweet):
     if not record:
         if query and not query == ' ':
             # Search failed
-            message = "@{user} BOT IS SORRY! No article matching '{text}'.".format(user=user, text=text)
+            chars = 100 - len(user)
+            message = "@{user} BOT IS SORRY! No article matching '{text}'.".format(user=user, text=text[:chars])
         else:
             # Something's wrong, let's just give up.
             message = "@{user} BOT HAS FAILED! Something went wrong. [:-(] {date}".format(user=user, date=datetime.datetime.now())
     else:
         url = record['troveUrl']
         title = record['title']
-        chars = 118 - (len(user) + 4)
+        chars = 118 - (len(user) + 5)
         title = title[:chars]
         message = "@{user} '{title}' {url}".format(user=user, title=title.encode('utf-8'), url=url)
     return message
