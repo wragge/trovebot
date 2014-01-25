@@ -137,7 +137,23 @@ def extract_title(url):
     return query
 
 
+def check_trove_newspapers(url):
+    print url
+    is_trove = False
+    patterns = [
+        'http://trove.nla.gov.au/ndp/del/article',
+        'http://nla.gov.au/nla.news-article'
+    ]
+    for pattern in patterns:
+        if pattern in url:
+            is_trove = True
+            break
+    return is_trove
+
+
 def get_alchemy_result(query_url, xpath=None):
+    if check_trove_newspapers(query_url) == True:
+        xpath = '//div[@class="ocr-text"]/p' 
     h = httplib2.Http()
     url = ALCHEMY_KEYWORD_QUERY.format(
         key=credentials.alchemy_api,
@@ -156,18 +172,21 @@ def extract_url_keywords(tweet, text, xpath=None):
     query = None
     keywords = []
     try:
-        url = tweet.urls[0].url
+        if tweet.urls[0].expanded_url:
+            url = tweet.urls[0].expanded_url
+        else:
+            url = tweet.urls[0].url
     except (IndexError, NameError):
         return None
     else:
         # Use Alchemy
         results = get_alchemy_result(url)
         for keyword in results['keywords']:
-            text = keyword['text']
-            if len(text.split()) > 1:
-                keywords.append('"{}"'.format(text.encode('utf-8')))
+            value = keyword['text']
+            if len(value.split()) > 1:
+                keywords.append('"{}"'.format(value.encode('utf-8')))
             else:
-                keywords.append(text.encode('utf-8'))
+                keywords.append(value.encode('utf-8'))
     query = '({})'.format(' OR '.join(keywords))
     print query
     return query
@@ -328,7 +347,7 @@ def tweet_reply(api):
                     if message:
                         try:
                             print message
-                            api.PostUpdate(message, in_reply_to_status_id=tweet.id)
+                            #api.PostUpdate(message, in_reply_to_status_id=tweet.id)
                         except:
                             logging.exception('{}: Got exception on sending tweet'.format(datetime.datetime.now()))
                     time.sleep(20)

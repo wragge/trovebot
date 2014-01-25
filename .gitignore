@@ -2,4 +2,5 @@
 credentials.py
 file_locations_prod.py
 file_locations_dev.py
-last_id.py
+last_id.txt
+errors.txt
