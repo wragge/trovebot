@@ -347,7 +347,7 @@ def tweet_reply(api):
                     if message:
                         try:
                             print message
-                            #api.PostUpdate(message, in_reply_to_status_id=tweet.id)
+                            api.PostUpdate(message, in_reply_to_status_id=tweet.id)
                         except:
                             logging.exception('{}: Got exception on sending tweet'.format(datetime.datetime.now()))
                     time.sleep(20)
