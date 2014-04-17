@@ -48,14 +48,14 @@ To limit your query to a particular zone or format, simply add one of these face
 * #music ('Sound/Recorded music' facet in the music zone)
 * #thesis ('Thesis' facet in the book)
 * #video ('Video' facet in music zone)
+* #abcrn (limit to ABC Radio National content in music zone)
 
 You can also add the following filters:
 
-* #abcrn (limit to ABC Radio National content)
 * #aus (limit to 'Australian' content)
 * #online (limit to content freely available online)
 
-The latter two are very metadata quality dependent, so they mightn't always be accurate.
+Both of these are very metadata quality dependent, so they mightn't always be accurate.
 
 By default all keywords are required for a match. To change this you can add the #any tag. This will match records that contain *any* of your keywords.
 
