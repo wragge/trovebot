@@ -32,34 +32,35 @@ ALCHEMY_KEYWORD_QUERY = 'http://access.alchemyapi.com/calls/url/URLGetRankedKeyw
 ZONES = ['book', 'article', 'picture', 'sound', 'collection', 'map']
 
 FORMATS = {
-    'artwork': (['Art work'], 'picture'),
-    'article': (None, 'article'),
-    'chapter': (['Article/Book chapter'], 'article'),
-    'paper': (['Article/Conference paper'], 'article'),
-    'report': (['Article/Report'], 'article'),
-    'review': (['Article/Review'], 'article'),
-    'book': (None, 'book'),
-    'proceedings': (['Conference Proceedings'], 'book'),
-    'data': (['Data set'], 'article'),
-    'map': (None, 'map'),
-    'object': (['Object'], 'picture'),
+    'artwork': (['Art work'], 'picture', None),
+    'article': (None, 'article', None),
+    'chapter': (['Article/Book chapter'], 'article', None),
+    'paper': (['Article/Conference paper'], 'article', None),
+    'report': (['Article/Report'], 'article', None),
+    'review': (['Article/Review'], 'article', None),
+    'book': (None, 'book', None),
+    'proceedings': (['Conference Proceedings'], 'book', None),
+    'data': (['Data set'], 'article', None),
+    'map': (None, 'map', None),
+    'object': (['Object'], 'picture', None),
     'periodical': ([
         'Periodical',
         'Periodical/Journal, magazine, other',
         'Periodical/Newspaper'
-        ], 'article'),
-    'photo': (['Photograph'], 'picture'),
-    'picture': (None, 'picture'),
-    'poster': (['Poster, chart, other'], 'picture'),
-    'archives': (None, 'collection'),
-    'score': (['Printed music'], 'music'),
-    'sound': (None, 'music'),
-    'interview': (['Sound/Interview, lecture, talk'], 'music'),
-    'music': (['Sound/Recorded music'], 'music'),
-    'thesis': (['Thesis'], 'book'),
+        ], 'article', None),
+    'photo': (['Photograph'], 'picture', None),
+    'picture': (None, 'picture', None),
+    'poster': (['Poster, chart, other'], 'picture', None),
+    'archives': (None, 'collection', None),
+    'score': (['Printed music'], 'music', None),
+    'sound': (None, 'music', None),
+    'interview': (['Sound/Interview, lecture, talk'], 'music', None),
+    'music': (['Sound/Recorded music'], 'music', None),
+    'thesis': (['Thesis'], 'book', None),
     'video': ([
         'Video'
-        ], 'music')
+        ], 'music'),
+    'abcrn': (None, 'music', 'ABC:RN')
 }
 
 logging.basicConfig(filename=LOG_FILE, level=logging.ERROR,)
@@ -196,6 +197,7 @@ def get_zone_results(query, aus, online):
     zones = []
     url = format_url(query, ','.join(ZONES), None, aus=aus, online=online)
     json_data = get_api_result(url)
+    print json_data
     for zone in json_data['response']['zone']:
         try:
             total = int(zone['records']['total'])
@@ -209,9 +211,11 @@ def get_zone_results(query, aus, online):
 def get_zone(query, format, aus, online):
     zone = None
     facets = None
+    nuc = None
     if format:
         facets = FORMATS[format][0]
         zone = FORMATS[format][1]
+        nuc = FORMATS[format][2]
     elif query:
         zones = get_zone_results(query, aus, online)
         zone = choice(zones)
@@ -219,7 +223,7 @@ def get_zone(query, format, aus, online):
         format = choice(FORMATS.keys())
         facets = FORMATS[format][0]
         zone = FORMATS[format][1]
-    return (zone, facets)
+    return (zone, facets, nuc)
 
 
 def get_format(text):
@@ -263,10 +267,17 @@ def process_tweet(tweet):
     if not query:
         query = extract_date(text)
     if not query:
-        query = ' '
         random = True
-    zone, facets = get_zone(query, format, aus, online)
+    zone, facets, nuc = get_zone(query, format, aus, online)
     #print zone
+    if nuc:
+        if query:
+            query += ' nuc:"{}"'.format(nuc)
+        else:
+            query = 'nuc:"{}"'.format(nuc)
+    if not query:
+        query = ' '
+
     record = get_record(zone, facets, query, aus, online, random)
     if not record:
         if query and not query == ' ':
@@ -333,8 +344,6 @@ def tweet_reply(api):
             results = api.GetMentions(since_id=last_id)
         except:
             logging.exception('{}: Got exception on retrieving tweets'.format(datetime.datetime.now()))
-        #message = process_tweet('"mount stromlo" light pollution', 'wragge')
-        #print message
         else:
             for tweet in results:
                 if tweet.in_reply_to_screen_name == 'TroveBot':
