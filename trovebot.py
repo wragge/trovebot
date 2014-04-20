@@ -368,7 +368,7 @@ def tweet_reply(api):
 
 
 def tweet_random(api):
-    zone, facets = get_zone('', None, aus=True, online=False)
+    zone, facets, nuc = get_zone('', None, aus=True, online=False)
     try:
         record = get_record(zone, facets, aus=True, random=True)
         url = record['troveUrl']
